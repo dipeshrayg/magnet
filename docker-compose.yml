@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - magnet_data:/app/data
+    environment:
+      - MAGNET_DB=/app/data/magnet.db
+      # Optional live-mode keys -- leave unset for zero-key demo mode.
+      # - GEMINI_API_KEY=
+      # - GROQ_API_KEY=
+
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  magnet_data:

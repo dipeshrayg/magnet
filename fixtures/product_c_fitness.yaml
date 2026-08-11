@@ -1,0 +1,30 @@
+name: Pulseform
+product_url: https://pulseform.example.com
+description: >
+  Pulseform is a D2C fitness app that builds a personalized strength and
+  mobility plan from a 3-minute assessment, then adapts weekly based on how
+  workouts actually went.
+value_props:
+  - Personalized plan from a 3-minute assessment, no generic templates
+  - Adapts weekly based on logged soreness and missed sessions
+  - Home or gym equipment, the plan adjusts either way
+  - Habit streaks that survive a missed week instead of resetting to zero
+target_customers:
+  - Busy professionals restarting fitness
+  - Postpartum athletes returning to training
+  - Beginners intimidated by generic workout apps
+industries: [fitness, healthcare, media]
+use_cases:
+  - Personalized workout planning
+  - Injury-aware programming
+  - Habit and streak tracking
+  - Home workout adaptation
+  - Postpartum return-to-training
+pain_points:
+  - generic templates that ignore injuries or soreness
+  - motivation collapsing after one missed week
+  - not knowing how to adjust a plan around travel
+  - equipment mismatch between the app and what they own
+competitors: [Future, Fitbod, Freeletics]
+keywords: [personalized workout plan, home workout app, strength training app, postpartum fitness, habit streak app, adaptive fitness plan]
+positioning: Pulseform builds the plan around your actual week, not a generic template.

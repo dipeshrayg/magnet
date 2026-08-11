@@ -1,0 +1,30 @@
+name: Shiftly
+product_url: https://shiftly.example.com
+description: >
+  Shiftly is team scheduling software for shift-based teams. Managers build
+  the roster in minutes, staff swap shifts from their phone, and no-shows drop
+  because everyone gets automatic reminders.
+value_props:
+  - Build a fair shift roster in under 10 minutes
+  - Staff can swap shifts without calling the manager
+  - Automatic reminders cut no-shows by a third
+  - One dashboard for labor cost and overtime risk
+target_customers:
+  - Retail store managers
+  - Restaurant operators
+  - Healthcare staffing coordinators
+industries: [retail, hospitality, healthcare, logistics]
+use_cases:
+  - Shift roster building
+  - Shift swapping
+  - No-show reduction
+  - Labor cost tracking
+  - Overtime alerts
+pain_points:
+  - building the weekly roster by hand in spreadsheets
+  - last-minute no-shows with no backup plan
+  - overtime creeping up without anyone noticing
+  - staff texting the manager to swap shifts
+competitors: [Deputy, When I Work, Homebase]
+keywords: [shift scheduling, roster software, shift swap app, no-show reduction, labor cost tracking, employee scheduling]
+positioning: Shiftly is the scheduling tool for hourly teams who are done fighting spreadsheets.

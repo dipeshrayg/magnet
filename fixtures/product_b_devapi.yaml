@@ -1,0 +1,30 @@
+name: Routewave
+product_url: https://routewave.example.com
+description: >
+  Routewave is a developer API platform for shipping, rates, and tracking.
+  One integration replaces direct carrier integrations, with sandbox testing,
+  webhooks, and 99.99% uptime SLA.
+value_props:
+  - One API instead of six carrier integrations
+  - Sandbox environment with realistic test data
+  - Real-time webhook events for every tracking update
+  - 99.99% uptime SLA with status page and incident history
+target_customers:
+  - Backend engineers at ecommerce companies
+  - Platform teams at logistics startups
+  - API-first product teams
+industries: [ecommerce, logistics, saas, fintech]
+use_cases:
+  - Multi-carrier shipping integration
+  - Rate shopping at checkout
+  - Real-time package tracking
+  - Webhook-driven order automation
+  - Sandbox testing before launch
+pain_points:
+  - maintaining six separate carrier API integrations
+  - flaky sandbox environments that do not match production
+  - no webhook support so we have to poll for tracking updates
+  - unclear rate limits that break under load
+competitors: [EasyPost, Shippo, ShipEngine]
+keywords: [shipping api, carrier integration, tracking webhook, rate shopping api, developer platform, sandbox testing]
+positioning: Routewave is the shipping API developers actually enjoy integrating.
