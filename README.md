@@ -130,6 +130,12 @@ generation, no network calls. Set `GEMINI_API_KEY` or `GROQ_API_KEY` to
 switch to a live LLM for drafting -- the UI is identical except for the
 `DEMO`/`LIVE` badge in the sidebar. A missing key never blocks startup.
 
+Live *sourcing* is a separate, also-opt-in switch: set
+`MAGNET_LIVE_SOURCES=1` to have Lead Radar pull fresh posts from Reddit and
+HN's public search APIs (see Known Limitations) on top of the seeded
+fixtures. It's independent of the LLM keys above -- you can run live drafting
+without live sourcing, or vice versa.
+
 ## Ethics & safety model
 
 - **Draft-first, always.** See M1-M12 above: every module that could act
@@ -152,11 +158,14 @@ onboarding, ICP, Lead Radar, Content Studio, Analytics, Approval Inbox,
 Portfolio, 3 seeded products, tests) is fully built and tested. Tier 2/3
 modules are real, working, and approval-gated, but intentionally simplified:
 
-- **Live connectors** (Reddit/HN/Product Hunt/forums) are not implemented --
-  only `DemoFixtureSource`-equivalent seeded data. The Connector SDK is
-  structured so a live source is a drop-in addition (see ARCHITECTURE.md),
-  but none ships in this build to avoid taking on ToS/rate-limit risk in a
-  demo.
+- **Live connectors**: Reddit (public `search.json`) and HN (Algolia's public
+  search API) are implemented and opt-in via `MAGNET_LIVE_SOURCES=1`
+  (`backend/app/connectors.py`) -- one small request per scan, honest
+  User-Agent, any failure degrades to the fixture data rather than breaking
+  the scan. Product Hunt's API requires an OAuth token this build doesn't
+  ship with, so `ProductHuntSource` is a documented no-op until one is
+  configured. Off by default so the zero-key demo path never depends on
+  network access.
 - **pSEO pages** are generated from template + dataset combinatorics
   (industry x use-case x audience), not crawled/scraped content -- each page
   has unique, product-specific copy but the generation logic is a heuristic,
@@ -174,19 +183,54 @@ through the Approval Inbox.
 ## Testing
 
 ```bash
-cd backend && pytest tests -q       # 21 tests: isolation, approval-safety, onboarding, e2e, growth-logic
+cd backend && pytest tests -q       # 30 tests: isolation, approval-safety, onboarding, e2e, growth-logic, connectors
 cd backend && ruff check app tests
 cd web && npm run lint && npm run build
 ```
 
 ## Deployment
 
+### Local / self-hosted
+
 `docker-compose up` builds and runs both services (`backend` on 8000,
 `web` on 8080, proxying `/api` to the backend via nginx). Persistent SQLite
 data lives in the `magnet_data` volume.
 
+### Live deployment (GitHub Pages + Render)
+
+GitHub itself can't run the FastAPI backend (Pages only serves static
+files), so the two halves deploy separately:
+
+- **Frontend -> GitHub Pages.** `.github/workflows/pages.yml` builds `web/`
+  and deploys it automatically on every push to `master` -- no extra setup,
+  Pages is already enabled on this repo (Settings -> Pages -> "GitHub
+  Actions" build type). Live at **https://dipeshrayg.github.io/magnet/**.
+- **Backend -> Render (free tier).** `render.yaml` at the repo root defines
+  the service. One-time setup (Render needs your own account -- this repo
+  can't create one for you):
+
+  [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/dipeshrayg/magnet)
+
+  After it deploys, copy the Render service URL, then set it as a repo
+  variable so the frontend build points at it:
+
+  ```bash
+  gh variable set VITE_API_BASE --body "https://<your-service>.onrender.com" --repo dipeshrayg/magnet
+  gh workflow run pages.yml --repo dipeshrayg/magnet
+  ```
+
+  Until `VITE_API_BASE` is set, the Pages site still builds and serves, it
+  just has no backend to call (its API requests go to a relative `/api`
+  that doesn't exist on a static host).
+
+Free-tier note: Render's free web services spin down after inactivity and
+take ~30-60s to wake on the next request -- expected on the free plan, not
+a bug.
+
 ## Roadmap
 
-- Real connector implementations behind the existing Connector SDK interface
+- Live connectors: Reddit and HN are wired up (`backend/app/connectors.py`,
+  opt-in via `MAGNET_LIVE_SOURCES=1`); Product Hunt needs an OAuth token this
+  build doesn't ship with
 - Swap the heuristic pSEO/VOC generators for LLM-assisted passes in live mode
 - Multi-user roles/permissions on top of the existing workspace model

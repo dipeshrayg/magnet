@@ -1,4 +1,7 @@
-const BASE = "/api";
+// In dev, Vite proxies /api to localhost:8000 (vite.config.js). In a static
+// deploy (GitHub Pages) there's no proxy, so the deployed backend's origin
+// must be baked in at build time via VITE_API_BASE.
+const BASE = `${import.meta.env.VITE_API_BASE || ""}/api`;
 
 async function req(method, path, body) {
   const res = await fetch(`${BASE}${path}`, {

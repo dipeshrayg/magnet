@@ -2,12 +2,37 @@ from fastapi import APIRouter, Depends
 
 from ..ai import get_provider
 from ..approval_lib import create_draft
+from ..config import live_sources_enabled
+from ..connectors import LIVE_SOURCES
 from ..growth_logic import score_post
 from ..models import CommunityPost, Competitor, CompetitorEvent, GrowthEvent, Lead, ProductProfile, Review, VocItem
 from ..serialize import to_dict, to_list
 from ..workspace_ctx import WorkspaceContext, get_workspace_ctx
 
 router = APIRouter(tags=["growth"])
+
+
+def _ingest_live_sources(ctx: WorkspaceContext, keywords: list) -> int:
+    """Best-effort: pulls fresh posts from opt-in live connectors and inserts
+    any not already seen (deduped by url). A source erroring never blocks the
+    others or the scan itself -- see connectors.py."""
+    existing_urls = {u for (u,) in ctx.query(CommunityPost).with_entities(CommunityPost.url).all()}
+    inserted = 0
+    for source in LIVE_SOURCES:
+        try:
+            for post in source.fetch(keywords):
+                if not post["text"] or post["url"] in existing_urls:
+                    continue
+                ctx.add(CommunityPost(
+                    source=post["source"], author=post["author"], text=post["text"], url=post["url"],
+                ))
+                existing_urls.add(post["url"])
+                inserted += 1
+        except Exception:
+            continue  # one failed source must not crash the pipeline
+    if inserted:
+        ctx.db.commit()
+    return inserted
 
 
 # ---------- M2 Lead Radar ----------
@@ -26,6 +51,7 @@ def scan_leads(ctx: WorkspaceContext = Depends(get_workspace_ctx)):
     profile = ctx.query(ProductProfile).first()
     keywords = profile.keywords if profile else []
     pain_points = profile.pain_points if profile else []
+    live_ingested = _ingest_live_sources(ctx, keywords) if live_sources_enabled() else 0
     posts = ctx.query(CommunityPost).all()
     ctx.query(Lead).delete()
     created = []
@@ -52,7 +78,10 @@ def scan_leads(ctx: WorkspaceContext = Depends(get_workspace_ctx)):
                      ref_table="leads", ref_id=lead.id)
         ctx.add(GrowthEvent(stage="lead", source_module="M2 Lead Radar", attribution_source=lead.source))
     ctx.db.commit()
-    return {"scanned": len(posts), "leads_created": len(created), "drafts_created": len(high_intent[:10])}
+    return {
+        "scanned": len(posts), "leads_created": len(created), "drafts_created": len(high_intent[:10]),
+        "live_posts_ingested": live_ingested,
+    }
 
 
 # ---------- M3 Competitor Watch ----------

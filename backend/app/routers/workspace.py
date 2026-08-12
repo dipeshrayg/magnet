@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..ai import is_live_mode
+from ..config import USER_AGENT, live_sources_enabled
 from ..db import get_db
 from ..growth_logic import derive_icp_from_profile, derive_product_profile_from_text
 from ..models import ICP, GrowthEvent, ProductProfile, Workspace
@@ -15,8 +16,6 @@ from ..serialize import to_dict, to_list
 from ..workspace_ctx import WorkspaceContext, get_workspace_ctx
 
 router = APIRouter(tags=["workspace"])
-
-USER_AGENT = "MAGNETBot/1.0 (+https://github.com/magnet; growth-research; contact: demo@magnet.local)"
 
 
 class ManualOnboardRequest(BaseModel):
@@ -116,7 +115,7 @@ def get_icp(ctx: WorkspaceContext = Depends(get_workspace_ctx)):
 
 @router.get("/system/mode")
 def system_mode():
-    return {"mode": "LIVE" if is_live_mode() else "DEMO"}
+    return {"mode": "LIVE" if is_live_mode() else "DEMO", "live_sources": live_sources_enabled()}
 
 
 @router.get("/portfolio")

@@ -43,15 +43,24 @@ same code path.
 
 ## Connector SDK
 
-`Source` isn't a literal class hierarchy in this build -- the interface is
-implicit in how fixtures are shaped and how `seed.py` populates
-`CommunityPost`/`Review`/`CompetitorEvent` rows. Every module that consumes
-"external" data (Lead Radar, Competitor Watch, Reputation) reads from these
-tables, not from a live network call. A live connector (`RedditSource`,
-`HNSource`, ...) would populate the same tables with the same shape --
-`{source, author, text, url, posted_at}` for posts, `{source, rating, text,
-subject}` for reviews -- so adding one is additive, not a rewrite. None
-ships in this build (see README Known Limitations).
+`backend/app/connectors.py` defines `Source` (one method: `fetch(keywords) ->
+list[{source, author, text, url, posted_at}]`, must never raise). `seed.py`
+populating `CommunityPost` rows directly is the always-available
+`DemoFixtureSource` path. `RedditSource` and `HNSource` hit their platforms'
+public, unauthenticated search endpoints (Reddit's `search.json`, HN via
+Algolia) -- one small request per scan, an honest identifying User-Agent
+(`config.USER_AGENT`, the same one the URL-onboarding fetcher uses), and a
+try/except that returns `[]` on any failure so one blocked/rate-limited
+source degrades gracefully instead of breaking the scan. `ProductHuntSource`
+requires an OAuth token (`PRODUCTHUNT_API_TOKEN`) PH's API doesn't offer
+unauthenticated; without one it's a documented no-op.
+
+Live sourcing is opt-in (`MAGNET_LIVE_SOURCES=1`, checked in
+`config.live_sources_enabled()`) and gated separately from the AI
+live/demo toggle -- the zero-key demo path must not depend on network access
+at all. `routers/growth.py::_ingest_live_sources` is the only caller: it
+dedupes incoming posts against existing `CommunityPost.url` values before
+inserting, so re-running a scan doesn't create duplicate leads.
 
 ## AI abstraction
 

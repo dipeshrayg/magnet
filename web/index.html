@@ -2,9 +2,20 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MAGNET -- Autonomous Growth Engine</title>
+    <script>
+      // Companion to public/404.html: restores the real client-side route
+      // GitHub Pages bounced through before React Router mounts.
+      (function () {
+        var path = sessionStorage.getItem("magnet-redirect-path");
+        if (path) {
+          sessionStorage.removeItem("magnet-redirect-path");
+          history.replaceState(null, "", path);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
