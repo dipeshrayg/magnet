@@ -10,7 +10,10 @@
     <meta charset="utf-8" />
     <script>
       sessionStorage.setItem("magnet-redirect-path", location.pathname + location.search + location.hash);
-      location.replace(location.pathname.split("/").slice(0, 2).join("/") || "/");
+      // Trailing slash matters: "/magnet" and "/magnet/" are different cache
+      // entries on Pages' CDN, and only the slash form is the canonical
+      // directory index that actually resolves to index.html.
+      location.replace((location.pathname.split("/").slice(0, 2).join("/") || "") + "/");
     </script>
   </head>
   <body></body>
